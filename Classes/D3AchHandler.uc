@@ -4,16 +4,16 @@ class D3AchHandler extends ScrnAchHandlerBase;
 
 var transient array< class<DoomMonster> > KilledBosses; // bosses killed this game
 
-var transient array<ScrnPlayerInfo> DatingMedics; // list of medics, who took boss for a walk 
+var transient array<ScrnPlayerInfo> DatingMedics; // list of medics, who took boss for a walk
 var transient bool bCheckDatingDemon;
 var ScrnPlayerInfo LastDatingMedic;
 var bool bBerserked;
 
-function GameWon(string MapName) 
-{ 
+function GameWon(string MapName)
+{
     if ( GameRules.GameDoom3Kills <= 0 )
         return; // no doom monsters in game
-		
+
     if ( Level.Game.GameDifficulty >= 7 ) {
         if ( MapName ~= "KF-D2M1" )
             Ach2All('D3MapEntryway', 1);
@@ -28,15 +28,12 @@ function WaveStarted(byte WaveNum)
     DatingMedics.length = 0;
 }
 
-function PlayerDamaged(int Damage, ScrnPlayerInfo VictimSPI, KFMonster InstigatedBy, class<DamageType> DamType) 
+function PlayerDamaged(int Damage, ScrnPlayerInfo VictimSPI, KFMonster InstigatedBy, class<DamageType> DamType)
 {
-    local DoomMonster DM;
-    
-    DM = DoomMonster(InstigatedBy);
-    if ( DM == none )
-        return;
-        
-    if ( DM.bIsBossSpawn ) {
+    local DoomBoss Boss;
+
+    Boss = DoomBoss(InstigatedBy);
+    if ( Boss != none ) {
         bBerserked = false;
         if ( bCheckDatingDemon ) {
             if ( VictimSPI != LastDatingMedic && !IsDatingMedic(VictimSPI) ) {
@@ -57,47 +54,47 @@ function ScoreKill(Controller Killer, Controller Killed)
         Ach2Alive('D3Turncoat', 1);
 }
 
-function MonsterDamaged(int Damage, KFMonster Victim, ScrnPlayerInfo InstigatorInfo, 
+function MonsterDamaged(int Damage, KFMonster Victim, ScrnPlayerInfo InstigatorInfo,
     class<KFWeaponDamageType> DamType, bool bIsHeadshot, bool bWasDecapitated)
 {
     local DoomMonster DM;
     local Doom3Controller D3C;
-    
+
     DM = DoomMonster(Victim);
     if ( DM == none )
         return;
-    D3C = Doom3Controller(Victim.Controller); 
+    D3C = Doom3Controller(Victim.Controller);
     if ( D3C == none )
-        return;        
-        
-    if ( DM.bIsBossSpawn ) {    
+        return;
+
+    if ( DoomBoss(DM) != none ) {
         if ( bCheckDatingDemon ) {
-            if ( LastDatingMedic != InstigatorInfo 
+            if ( LastDatingMedic != InstigatorInfo
                 && (D3C.Enemy == InstigatorInfo.PlayerOwner
                     || D3C.Target == InstigatorInfo.PlayerOwner)
-                && IsMedic(InstigatorInfo) ) 
+                && IsMedic(InstigatorInfo) )
             {
                 AddDatingMedic(InstigatorInfo);
                 LastDatingMedic = InstigatorInfo;
             }
         }
-        if ( Sabaoth(DM) != none ) {
-            if ( DamType == class'ScrnDoom3KF.DamTypeBFG' )
-                InstigatorInfo.ProgressAchievement('D3BFGCell', 1); 
-        }
-        else if ( HunterBerserk(DM) != none ) {
-            if ( Damage > 100 && DamType.default.bIsMeleeDamage && !ClassIsChildOf(DamType, class'DamTypeCrossbuzzsaw') ) {
-                if ( bBerserked )
-                    InstigatorInfo.ProgressAchievement('D3Berserked', 1); 
-                else
-                    bBerserked = true;
-            }
-        }        
     }
-        
+
     if ( TriteFly(DM) != none ) {
         if ( TriteFly(DM).bFlying && TriteFly(DM).bReleased && ClassIsChildOf(DamType, class'ScrnDamTypeNailGun') )
-            InstigatorInfo.ProgressAchievement('D3VagarySpider', 1); 
+            InstigatorInfo.ProgressAchievement('D3VagarySpider', 1);
+    }
+    else if ( Sabaoth(DM) != none ) {
+        if ( DamType == class'ScrnDoom3KF.DamTypeBFG' )
+            InstigatorInfo.ProgressAchievement('D3BFGCell', 1);
+    }
+    else if ( HunterBerserk(DM) != none ) {
+        if ( Damage > 100 && DamType.default.bIsMeleeDamage && !ClassIsChildOf(DamType, class'DamTypeCrossbuzzsaw') ) {
+            if ( bBerserked )
+                InstigatorInfo.ProgressAchievement('D3Berserked', 1);
+            else
+                bBerserked = true;
+        }
     }
 
 }
@@ -107,40 +104,40 @@ function MonsterKilled(KFMonster Victim, ScrnPlayerInfo KillerInfo, class<KFWeap
     local DoomMonster DM;
     local Doom3Controller D3C;
     local int index;
-    
+
     // if there are less than 15 zeds, then it is time to kill the boss
-    bCheckDatingDemon = bCheckDatingDemon && GameRules.Mut.KF.TotalMaxMonsters > 15; 
-    
+    bCheckDatingDemon = bCheckDatingDemon && GameRules.Mut.KF.TotalMaxMonsters > 15;
+
     DM = DoomMonster(Victim);
     if ( DM == none )
         return;
-    D3C = Doom3Controller(Victim.Controller); 
+    D3C = Doom3Controller(Victim.Controller);
     if ( D3C == none )
         return;
-        
+
     index = GameRules.GetMonsterIndex(Victim);
-        
-    KillerInfo.ProgressAchievement('D3Kill666', 1); 
+
+    KillerInfo.ProgressAchievement('D3Kill666', 1);
     if ( DM.default.Health > 1000 ) {
-        if ( DamType.default.bSniperWeapon && GameRules.MonsterInfos[index].bHeadshot 
+        if ( DamType.default.bSniperWeapon && GameRules.MonsterInfos[index].bHeadshot
                 && !IsPistolDamage(KillerInfo, DamType) )
-        KillerInfo.ProgressAchievement('D3BigHS', 1); 
+        KillerInfo.ProgressAchievement('D3BigHS', 1);
     }
 
     if ( ClassIsChildOf(DamType, class'KFMod.DamTypeChainsaw') )
-        KillerInfo.ProgressAchievement('D3Chainsaw93', 1); 
-    
+        KillerInfo.ProgressAchievement('D3Chainsaw93', 1);
+
     if ( Level.TimeSeconds < D3C.LastTeleportTime + 2.0 )
         KillerInfo.ProgressAchievement('D3KillTeleport', 1);
-        
-    
-    if ( DM.bIsBossSpawn || GameRules.BossClass == DM.class ) {
+
+
+    if ( DoomBoss(DM) != none ) {
         D3BossKilled(KillerInfo, DM);
     }
     else if ( Tick(DM) != none ) {
         if ( IsPistolDamage(KillerInfo, DamType) )
             KillerInfo.ProgressAchievement('D3Spiders', 1);
-    }        
+    }
     else if ( FatZombie(DM) != none ) {
         KillerInfo.ProgressAchievement('D3FatZombie', 1);
     }
@@ -161,19 +158,18 @@ function MonsterKilled(KFMonster Victim, ScrnPlayerInfo KillerInfo, class<KFWeap
             KillerInfo.ProgressAchievement('D3Revenant', 1);
     }
     else if ( Archvile(DM) != none ) {
-        if ( DamType.default.bDealBurningDamage 
-                || ClassIsChildOf(DamType, class'KFMod.DamTypeHuskGunProjectileImpact') 
+        if ( DamType.default.bDealBurningDamage
+                || ClassIsChildOf(DamType, class'KFMod.DamTypeHuskGunProjectileImpact')
                 || ClassIsChildOf(DamType, class'KFMod.DamTypeFlareProjectileImpact') )
             KillerInfo.ProgressAchievement('D3Archvile', 1);
-    }    
+    }
 }
 
 function D3BossKilled(ScrnPlayerInfo KillerInfo, DoomMonster Boss)
 {
-    local bool bLegalBoss; 
+    local bool bLegalBoss;
     local int i;
-    
-    
+
     bLegalBoss = true;
     if ( Vagary(Boss) != none )
         Ach2Alive('D3Vagary', 1);
@@ -191,13 +187,13 @@ function D3BossKilled(ScrnPlayerInfo KillerInfo, DoomMonster Boss)
         Ach2Alive('D3HunterInvul', 1);
     else if ( Maledict(Boss) != none )
         Ach2Alive('D3Maledict', 1);
-    else 
+    else
         bLegalBoss = false; // some crap is used instead of standard D3 boss
 
     if ( bLegalBoss ) {
         if ( !Boss.bDamagedAPlayer )
             Ach2Alive('D3NoDamageFromBoss', 1);
-			
+
         if ( GameRules.bFinalWave ) {
             for ( i=0; i<KilledBosses.length; ++i ) {
                 if ( KilledBosses[i] == Boss.class ) {
@@ -218,8 +214,8 @@ function D3BossKilled(ScrnPlayerInfo KillerInfo, DoomMonster Boss)
 function bool IsDatingMedic(ScrnPlayerInfo SPI)
 {
     local int i;
-    
-    for ( i=0; i<DatingMedics.length; ++i ) 
+
+    for ( i=0; i<DatingMedics.length; ++i )
         if ( DatingMedics[i] == SPI )
             return true;
     return false;

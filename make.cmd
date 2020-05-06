@@ -3,7 +3,7 @@
 setlocal
 color 07
 
-set KFDIR=D:\Games\kf
+set KFDIR=C:\Games\kf
 set STEAMDIR=c:\Steam\steamapps\common\KillingFloor
 rem remember current directory
 set CURDIR=%~dp0
