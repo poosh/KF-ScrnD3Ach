@@ -1,16 +1,12 @@
-class D3AchMut extends Mutator;
-
-function PostBeginPlay()
-{
-    class'ScrnAchievements'.static.RegisterAchievements(class'D3Ach');
-    Level.Game.Spawn(class'D3AchHandler');
-    Destroy();
-}
+class D3AchMut extends ScrnAchMutator;
 
 defaultproperties
 {
-    bAddToServerPackages=True
+    VersionNumber=96801
+    AchClass=class'ScrnD3Ach.D3Ach'
+    AchHandler=class'ScrnD3Ach.D3AchHandler'
+
     GroupName="KF-D3Ach"
-    FriendlyName="Doom 3 Monsters Mode - ScrN Achievement Pack"
-    Description="Adds DooM3 achievements for ScrN Balance"
+    FriendlyName="ScrN Doom3 Ach"
+    Description="Adds Doom3 achievements for ScrN Balance"
 }

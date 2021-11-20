@@ -81,7 +81,7 @@ function MonsterDamaged(int Damage, KFMonster Victim, ScrnPlayerInfo InstigatorI
     }
 
     if ( TriteFly(DM) != none ) {
-        if ( TriteFly(DM).bFlying && TriteFly(DM).bReleased && ClassIsChildOf(DamType, class'ScrnDamTypeNailGun') )
+        if ( DM.IsInState('Flying') && ClassIsChildOf(DamType, class'ScrnDamTypeNailGun') )
             InstigatorInfo.ProgressAchievement('D3VagarySpider', 1);
     }
     else if ( Sabaoth(DM) != none ) {
