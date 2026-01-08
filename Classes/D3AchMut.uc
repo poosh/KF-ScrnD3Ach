@@ -2,7 +2,7 @@ class D3AchMut extends ScrnAchMutator;
 
 defaultproperties
 {
-    VersionNumber=97300
+    VersionNumber=97400
     AchClass=class'ScrnD3Ach.D3Ach'
     AchHandler=class'ScrnD3Ach.D3AchHandler'
 
